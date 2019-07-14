@@ -1,0 +1,30 @@
+{
+    "name": "@ivanhulzen/adaptive-icon",
+    "version": "1.0.0",
+    "description": "Android adaptive icon generator",
+    "main": "index.js",
+    "author": "ivanhulzen <info@ivhdevelopment.com>",
+    "license": "MIT",
+    "prettier": {
+        "singleQuote": true,
+        "trailingComma": "es5",
+        "tabWidth": 4
+    },
+    "bin": {
+        "adaptive-icon": "cli/generate.js"
+    },
+    "scripts": {
+        "start": "node cli/generate.js"
+    },
+    "dependencies": {
+        "clui": "^0.3.6",
+        "inquirer": "^6.3.1",
+        "inquirer-path": "^1.0.0-beta5",
+        "svg-to-png": "^4.0.0",
+        "svgo": "^1.2.2",
+        "svgson": "^3.1.0"
+    },
+    "devDependencies": {
+        "prettier": "^1.18.2"
+    }
+}

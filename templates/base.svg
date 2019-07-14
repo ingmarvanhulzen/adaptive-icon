@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
+	<defs>
+    	<mask id="corners" fill="white">
+      		<rect rx="5" ry="5" width="72" height="72"/>
+    	</mask>
+	</defs>
+  	<g mask="url(#corners)">
+		<g transform="translate(-18, -18)">
+{content}
+		</g>
+	</g>
+</svg>
