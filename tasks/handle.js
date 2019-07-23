@@ -24,8 +24,22 @@ function handle(elements) {
                         });
                     }
 
-                    children.forEach(({ attributes }) => {
-                        paths.push(attributes);
+                    children.forEach(node => {
+                        if (node.name === 'g' && node.children.length > 0) {
+                            node.children.forEach(child => {
+                                if (child.name === 'path') {
+                                    paths.push(child.attributes);
+                                }
+                                if (child.name === 'polygon' && child.attributes.points) {
+                                    paths.push({
+                                        fill: child.attributes.fill,
+                                        path: 'M' + child.attributes.points
+                                    });
+                                }
+                            });
+                        } else if (node.name === 'path') {
+                            paths.push(node.attributes);
+                        }
                     });
 
                     resolve(paths);
