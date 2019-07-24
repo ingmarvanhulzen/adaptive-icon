@@ -6,8 +6,7 @@ var CLI = require('clui');
 var read = require('../tasks/read');
 var optimize = require('../tasks/optimize');
 var parse = require('../tasks/parse');
-var handle = require('../tasks/handle');
-var merge = require('../tasks/merge');
+var vectorize = require('../tasks/vectorize');
 var write = require('../tasks/write');
 
 var Spinner = CLI.Spinner;
@@ -35,8 +34,7 @@ inquirer
     .then(read)
     .then(optimize)
     .then(parse)
-    .then(handle)
-    .then(merge)
+    .then(vectorize)
     .then(write)
     .then(() => {
         spinner.stop();
