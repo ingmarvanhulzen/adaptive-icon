@@ -59,20 +59,6 @@ function readTemplates(templates) {
     );
 }
 
-function xmlPath(attributes) {
-    return `	<path\n${Object.keys(attributes)
-        .map(next => {
-            if (next === 'd') {
-                return `		android:pathData="${attributes[next]}"`;
-            } else if (next === 'fill') {
-                return `		android:fillColor="${attributes[next].toUpperCase()}"`;
-            }
-            return false;
-        })
-        .filter(f => f)
-        .join('\n')} />`;
-}
-
 function convert(from, path, size) {
     return svg_to_png.convert(from, path, {
         defaultHeight: size,
@@ -80,35 +66,40 @@ function convert(from, path, size) {
     });
 }
 
-function write([background, foreground, paths]) {
+function write([background, foreground]) {
     return new Promise(resolve => {
         const dir = makeDirs(DIRECTORYS);
         const templates = readTemplates(TEMPLATES);
 
+        const merged = background.toSvgContent() + foreground.toSvgContent();
+
         // Create temporary svgs
         fs.writeFileSync(
             dir('static', 'ic_launcher.svg'),
-            templates.base.replace('{content}', paths.join('\n')),
+            templates.base.replace('{content}', merged),
             'utf8'
         );
         fs.writeFileSync(
             dir('static', 'ic_launcher_round.svg'),
-            templates.round.replace('{content}', paths.join('\n')),
+            templates.round.replace('{content}', merged),
             'utf8'
         );
 
         // Create xml background and foreground
-        const xmlBackground = background.map(xmlPath).join('\n');
-        const xmlForeground = foreground.map(xmlPath).join('\n');
-
         fs.writeFileSync(
             dir('drawable', 'ic_launcher_background.xml'),
-            templates.vector.replace('{content}', xmlBackground),
+            templates.vector.replace(
+                '{content}',
+                background.toVectorContent('    ')
+            ),
             'utf8'
         );
         fs.writeFileSync(
             dir('drawable', 'ic_launcher_foreground.xml'),
-            templates.vector.replace('{content}', xmlForeground),
+            templates.vector.replace(
+                '{content}',
+                foreground.toVectorContent('    ')
+            ),
             'utf8'
         );
 

@@ -44,7 +44,7 @@ Vector.prototype.toGroup = function({ attributes, children }) {
     });
 
     if (attributes.transform) {
-        var transform = str
+        var transform = attributes.transform
             .match(/[0-9.\s]/g)
             .join('')
             .split(' ');
@@ -71,10 +71,41 @@ Vector.prototype.toPolygon = function({ attributes }) {
     });
 };
 
+Vector.prototype.toCircle = function({ attributes }) {
+    var cx = attributes.cx || 0;
+    var cy = attributes.cy || 0;
+    var r = attributes.r || 0;
+
+    var attrs = attributes;
+    attrs.d = `M${cx} ${cy} m -${r}, 0 a ${r},${r} 0 1,0 ${r *
+        2},0 a ${r},${r} 0 1,0 -${r * 2},0`;
+
+    return this.toPath({
+        attributes: attrs,
+    });
+};
+
+Vector.prototype.toEllipse = function({ attributes }) {
+    var rx = attributes.rx || 0;
+    var cx = attributes.cx || 0;
+    var ry = attributes.ry || 0;
+    var cy = attributes.cy || 0;
+
+    var attrs = attributes;
+    attrs.d = `M${cx - rx},${cy}a${rx},${ry} 0 1,0 ${rx *
+        2},0a${rx},${ry} 0 1,0 -${rx * 2},0`;
+
+    return this.toPath({
+        attributes: attrs,
+    });
+};
+
 Vector.prototype.handleChild = function(child) {
     if (child.name === 'g') return this.toGroup(child);
     if (child.name === 'path') return this.toPath(child);
     if (child.name === 'polygon') return this.toPolygon(child);
+    if (child.name === 'circle') return this.toCircle(child);
+    if (child.name === 'ellipse') return this.toEllipse(child);
 };
 
 Vector.prototype.handleChildren = function(children, attributes = {}) {
@@ -112,56 +143,98 @@ Vector.prototype.handleChildren = function(children, attributes = {}) {
     return elements;
 };
 
-Vector.prototype.pathToVector = function(data, indent = '') {
+Vector.prototype.pathToString = function(data, attributes, indent = '') {
     var path = ['<path'];
     Object.keys(data).forEach((key, index, { length }) => {
         if (index === length - 1) {
-            path.push('    ' + PATH[key] + '="' + data[key] + '" />');
+            path.push(`    ${attributes[key]}="${data[key]}" />`);
         } else {
-            path.push('    ' + PATH[key] + '="' + data[key] + '"');
+            path.push(`    ${attributes[key]}="${data[key]}"`);
         }
     });
-    path.map(str => indent + str);
+
+    path = path.map(str => indent + str);
     return path.join('\n');
 };
 
-Vector.prototype.groupToVector = function(data) {
-    var keys = Object.keys(data);
+Vector.prototype.groupToString = function(data, attrs, indent = '') {
+    var keys = Object.keys(data).filter(key => attrs.group.hasOwnProperty(key));
+    var groupKey = 'g';
     var group = [];
 
-    if (keys.length > 1) {
-        group.push('<group');
-        keys.forEach((key, index, { length }) => {
-            if (index === length - 1) {
-                group.push('    ' + GROUP[key] + '="' + data[key] + '" >');
-            } else {
-                group.push('    ' + GROUP[key] + '="' + data[key] + '"');
-            }
-        });
+    if (attrs.path.d === PATH.d) {
+        groupKey = 'group';
+    }
+
+    if (keys.length > 0) {
+        group.push(`${indent}<${groupKey}`);
+        if (groupKey === 'g') {
+            group.push(
+                `${indent}    transform="translate(${data.translateX} ${data.translateY})" >`
+            );
+        } else {
+            group.push(
+                `${indent}    ${attrs.group['translateX']}="${data.translateX}"`
+            );
+            group.push(
+                `${indent}    ${attrs.group['translateY']}="${
+                    data.translateY
+                }" >`
+            );
+        }
     } else {
-        group.push('<group>');
+        group.push(`${indent}<${groupKey}>`);
     }
 
     data.children.forEach(child => {
-        group.push(this.pathToVector(child, '    '));
+        if (child.hasOwnProperty('children')) {
+            group.push(this.groupToString(child, attrs, indent + '    '));
+        } else {
+            group.push(this.pathToString(child, attrs.path, indent + '    '));
+        }
     });
 
-    group.push('</group>');
+    group.push(`${indent}</${groupKey}>`);
 
     return group.join('\n');
 };
 
 // PUBLIC
-Vector.prototype.toVectorContent = function() {
+Vector.prototype.toVectorContent = function(indent = '') {
     return this.children
         .map(data => {
             if (data.hasOwnProperty('children')) {
-                return this.groupToVector(data);
+                return this.groupToString(
+                    data,
+                    { group: GROUP, path: PATH },
+                    indent
+                );
             }
 
-            return this.pathToVector(data);
+            return this.pathToString(data, PATH, indent);
         })
         .join('\n');
+};
+
+Vector.prototype.toSvgContent = function(indent = '') {
+    const group = Object.keys(GROUP).reduce((prev, key) => {
+        return Object.assign({}, prev, { [key]: key });
+    }, {});
+
+    const path = Object.keys(PATH).reduce((prev, key) => {
+        return Object.assign({}, prev, { [key]: key });
+    }, {});
+
+    return this.children
+        .map(data => {
+            if (data.hasOwnProperty('children')) {
+                return this.groupToString(data, { group, path }, indent);
+            }
+
+            return this.pathToString(data, path, indent);
+        })
+        .join('\n')
+        .replace('group', 'g');
 };
 
 module.exports = Vector;
