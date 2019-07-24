@@ -18,19 +18,19 @@ const TEMPLATES = {
     vector: path.join(__dirname, '..', 'templates', 'vector.xml'),
 };
 
-const DIRECTORYS = {
-    static: path.join(__dirname, '..', 'static'),
-    res: path.join(__dirname, '..', 'static', 'res'),
-    drawable: path.join(__dirname, '..', 'static', 'res', 'drawable'),
-    mipmap: path.join(__dirname, '..', 'static', 'res', 'mipmap-anydpi-v26'),
+const DIRECTORYS = (root = path.join(__dirname, '..', 'static')) => ({
+    static: root,
+    res: path.join(root, 'res'),
+    drawable: path.join(root, 'res', 'drawable'),
+    mipmap: path.join(root, 'res', 'mipmap-anydpi-v26'),
     ...Object.keys(MIPMAPS).reduce(
         (prev, key) => ({
             ...prev,
-            [key]: path.join(__dirname, '..', 'static', 'res', `mipmap-${key}`),
+            [key]: path.join(root, 'res', `mipmap-${key}`),
         }),
         {}
     ),
-};
+});
 
 function makeDirs(dirs) {
     Object.keys(dirs).reduce((prev, key) => {
@@ -66,9 +66,9 @@ function convert(from, path, size) {
     });
 }
 
-function write([background, foreground]) {
+function write([background, foreground, root]) {
     return new Promise(resolve => {
-        const dir = makeDirs(DIRECTORYS);
+        const dir = makeDirs(DIRECTORYS(root));
         const templates = readTemplates(TEMPLATES);
 
         const merged = background.toSvgContent() + foreground.toSvgContent();

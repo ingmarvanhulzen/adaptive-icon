@@ -1,7 +1,11 @@
 var svgson = require('svgson');
 
-function parse(paths) {
-    return Promise.all(paths.map(svgson.parse));
+function parse([background, foreground, base]) {
+    return Promise.all([
+        svgson.parse(background),
+        svgson.parse(foreground),
+        base,
+    ]);
 }
 
 module.exports = parse;

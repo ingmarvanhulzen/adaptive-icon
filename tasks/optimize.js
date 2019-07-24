@@ -49,12 +49,12 @@ const SvgOmg = new SVGO({
     ],
 });
 
-function optimize(options) {
-    return Promise.all(
-        options.map(string => {
-            return SvgOmg.optimize(string).then(({ data }) => data);
-        })
-    );
+function optimize([bacground, foreground, base]) {
+    return Promise.all([
+        SvgOmg.optimize(bacground).then(({ data }) => data),
+        SvgOmg.optimize(foreground).then(({ data }) => data),
+        base,
+    ]);
 }
 
 module.exports = optimize;

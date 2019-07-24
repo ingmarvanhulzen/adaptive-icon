@@ -26,6 +26,11 @@ inquirer
             name: 'foreground',
             message: 'Please enter youre foreground',
         },
+        {
+            type: 'path',
+            name: 'base',
+            message: 'Please enter the android main dir',
+        },
     ])
     .then(options => {
         spinner.start();

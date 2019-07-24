@@ -1,7 +1,7 @@
 var Vector = require('../utils/Vector');
 
-function vectorize(elements) {
-    return elements.map(node => new Vector(node));
+function vectorize([bacground, foreground, base]) {
+    return [new Vector(bacground), new Vector(foreground), base];
 }
 
 module.exports = vectorize;
